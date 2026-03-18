@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "messenger-backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/ts-node-dev/lib/bin.js", "--respawn", "--transpile-only", "src/index.ts"],
+      "port": 3000
+    }
+  ],
+  "autoVerify": true
+}

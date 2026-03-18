@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# Prisma generated client (regenerate with `npx prisma generate`)
+/generated/prisma
+
+# Prisma migrations — schema.prisma is tracked, migrations are env-specific
+prisma/migrations/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Uploads (local dev only)
+uploads/

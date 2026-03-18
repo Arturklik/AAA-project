@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ChatType {
+  direct
+  group
+}
+
+enum ChatRole {
+  admin
+  member
+}
+
+enum MessageType {
+  text
+  image
+  video
+  audio
+  file
+}
+
+model ActivationKey {
+  id        String   @id @default(uuid())
+  keyHash   String   @map("key_hash")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User?
+
+  @@map("activation_keys")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  activationKeyId String   @unique @map("activation_key_id")
+  username        String   @unique
+  avatarUrl       String?  @map("avatar_url")
+  lastSeen        DateTime @default(now()) @map("last_seen")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  activationKey ActivationKey @relation(fields: [activationKeyId], references: [id])
+  chatsCreated  Chat[]        @relation("ChatCreator")
+  chatMembers   ChatMember[]
+  messages      Message[]
+  files         File[]
+  messageReads  MessageRead[]
+
+  @@map("users")
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  type      ChatType
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  creator  User         @relation("ChatCreator", fields: [createdBy], references: [id])
+  members  ChatMember[]
+  messages Message[]
+
+  @@map("chats")
+}
+
+model ChatMember {
+  id       String   @id @default(uuid())
+  chatId   String   @map("chat_id")
+  userId   String   @map("user_id")
+  role     ChatRole @default(member)
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([userId])
+  @@map("chat_members")
+}
+
+model Message {
+  id        String      @id @default(uuid())
+  chatId    String      @map("chat_id")
+  senderId  String      @map("sender_id")
+  type      MessageType @default(text)
+  content   String?
+  fileId    String?     @map("file_id")
+  isDeleted Boolean     @default(false) @map("is_deleted")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  chat   Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  file   File?         @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  reads  MessageRead[]
+
+  @@index([chatId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model File {
+  id         String   @id @default(uuid())
+  uploaderId String   @map("uploader_id")
+  filename   String
+  mimeType   String   @map("mime_type")
+  sizeBytes  Int      @map("size_bytes")
+  storageKey String   @map("storage_key")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  uploader User      @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@map("files")
+}
+
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  readAt    DateTime @default(now()) @map("read_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@map("message_reads")
+}

@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# Pre-commit hook: reject commits that contain hardcoded secrets.
+# Scans staged files for secret patterns with real values (not placeholders).
+#
+
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Patterns that indicate a hardcoded secret (value after = is not a placeholder)
+# We look for KEY=value where value is NOT a common placeholder
+SECRETS_REGEX='(JWT_SECRET|JWT_REFRESH_SECRET|MINIO_SECRET_KEY|MINIO_ACCESS_KEY|DATABASE_URL|REDIS_URL)\s*=\s*["\x27]?(?!your-|changeme|placeholder|example|TODO|CHANGE_ME|password|minioadmin|redis://localhost|postgresql://user:password)[A-Za-z0-9+/=_\-]{8,}'
+
+# Get staged files (only added/modified, skip deleted)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+FOUND=0
+
+for FILE in $STAGED_FILES; do
+  # Skip binary files and .env.example
+  case "$FILE" in
+    *.env.example|*.png|*.jpg|*.gif|*.ico|*.woff*|*.ttf|*.eot|*.pdf)
+      continue
+      ;;
+  esac
+
+  # Check if the file is being staged (it might have been deleted)
+  if [ ! -f "$FILE" ]; then
+    continue
+  fi
+
+  # Search staged content for secret patterns
+  MATCHES=$(git diff --cached -U0 "$FILE" | grep -P "$SECRETS_REGEX" | grep -v "^-" || true)
+
+  if [ -n "$MATCHES" ]; then
+    echo -e "${RED}BLOCKED:${NC} Possible hardcoded secret in ${FILE}:"
+    echo "$MATCHES"
+    echo ""
+    FOUND=1
+  fi
+done
+
+# Also block .env files from being committed (belt + suspenders with .gitignore)
+for FILE in $STAGED_FILES; do
+  case "$FILE" in
+    .env|.env.local|.env.*.local)
+      echo -e "${RED}BLOCKED:${NC} Refusing to commit ${FILE} — add it to .gitignore"
+      FOUND=1
+      ;;
+  esac
+done
+
+if [ "$FOUND" -eq 1 ]; then
+  echo ""
+  echo "Commit rejected. Remove secrets before committing."
+  echo "If this is a false positive, use: git commit --no-verify"
+  exit 1
+fi
+
+exit 0
