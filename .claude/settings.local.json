@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth login --with-token)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr view 1 --repo Arturklik/AAA-project --json state,isDraft,title,body,author,labels)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr diff 1 --repo Arturklik/AAA-project --name-only)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr view 1 --repo Arturklik/AAA-project --json title,body,headRefName,baseRefName,additions,deletions,changedFiles)"
     ]
   }
 }
