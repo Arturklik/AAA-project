@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Messenger
 
 Private messaging application with activation-key-based registration. No email, no phone number — users receive a pre-generated one-time key to create their account.
@@ -109,3 +110,6 @@ Gitea is available at http://localhost:3001. See [CONTRIBUTING.md](CONTRIBUTING.
 ## Socket.io Events
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full event reference.
+=======
+# AAA-project
+>>>>>>> bcafe91084077cab943919e15ec1c079d04ba4c9
